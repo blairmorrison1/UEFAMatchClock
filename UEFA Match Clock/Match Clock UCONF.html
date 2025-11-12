@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html style="height:100%;margin:0;padding:0">
+<head>
+    <meta charset="UTF-8">
+    <title>Match Clock</title>
+    <style>
+        html, body { 
+            font-family: sans-serif; 
+            font-weight: bold; 
+            color: #FFF; 
+            background: url("UCONF_Background.png") no-repeat center center fixed; 
+            background-size: cover; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100%; 
+            margin: 0; 
+        }
+        #clocktext { 
+            font-size: 323.775pt; 
+        }
+        #countdown, .countdown-box, #vorDisplay, #venueDisplay { 
+            position: absolute; 
+            text-align: center; 
+        }
+        #countdown { 
+            bottom: 0; 
+            height: 200px; 
+            width: 100%; 
+            font-size: 53px; 
+            margin-top: 40px; 
+        }
+        .countdown-box { 
+            padding: 10px; 
+            background: rgba(0,0,0,0.5); 
+            border-radius: 5px; 
+            font-size: 39.75px; 
+            display: none; 
+            opacity: 0; /* Ensure boxes start hidden */
+            transition: opacity 1s ease-in-out; /* Smooth fade-in transition */
+        }
+        #pitchAccess { 
+            top: 10px; 
+            left: 10px; 
+        }
+        #endToEnd { 
+            top: 10px; 
+            right: 10px; 
+        }
+        #syncPans { 
+            bottom: 10px; 
+            left: 10px; 
+        }
+        #refTest { 
+            bottom: 10px; 
+            right: 10px; 
+        }
+        #vorDisplay { 
+            top: calc(50% - 300px); /* Positioned just below the clock */
+            font-size: 53px; 
+        }
+        #venueDisplay { 
+            top: calc(50% - 400px); /* Positioned above the clock */
+            font-size: 90px; 
+        }
+        #inputContainer { 
+            position: absolute; 
+            top: 10px; 
+            width: 100%; 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            z-index: 10; /* Ensure input container is above other elements */
+        }
+        .input, .set-button, #confirmButton { 
+            font-size: 18px; 
+            padding: 8px 20px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            margin-bottom: 8px; 
+            width: 220px; 
+            cursor: pointer; 
+        }
+        .set-button, #confirmButton { 
+            background-color: #4CAF50; 
+        }
+        #vorInput { 
+            margin-top: 300px; /* Move down by 300px */
+        }
+        #venueInput { 
+            margin-top: 8px; /* Ensure venue input sits just under VOR input */
+        }
+        #confirmButton {
+            margin-top: 10px; /* Adjust as needed to position button correctly */
+            z-index: 20; /* Ensure the confirm button is above all other elements */
+        }
+
+        /* New style for Match Live */
+        .match-live {
+            color: green !important; /* Ensure text color is green */
+            font-size: 70px; /* Adjust font size for the "Match Live" text */
+        }
+    </style>
+</head>
+<body>
+    <span id="clocktext">13:44:52</span>
+    <div id="inputContainer">
+        <div class="timing-group">
+            <input type="text" id="kickoffTitle" class="input" placeholder="Title (e.g., Kick-Off)" value="Kick-Off">
+            <input type="time" id="kickoffInput" class="input">
+            <button id="setButton" class="set-button" onclick="setKickoffTime()">Set Time</button>
+        </div>
+        <div class="timing-group">
+            <input type="text" id="pitchAccessTitle" class="input" placeholder="Title (e.g., Pitch Access)" value="Pitch Access">
+            <input type="time" id="pitchAccessInput" class="input">
+            <button class="set-button" onclick="setCountdownTime('pitchAccess')">Set Time</button>
+        </div>
+        <div class="timing-group">
+            <input type="text" id="syncPansTitle" class="input" placeholder="Title (e.g., Sync/Pans)" value="Sync/Pans">
+            <input type="time" id="syncPansInput" class="input">
+            <button class="set-button" onclick="setCountdownTime('syncPans')">Set Time</button>
+        </div>
+        <div class="timing-group">
+            <input type="text" id="endToEndTitle" class="input" placeholder="Title (e.g., End to End)" value="End to End">
+            <input type="time" id="endToEndInput" class="input">
+            <button class="set-button" onclick="setCountdownTime('endToEnd')">Set Time</button>
+        </div>
+        <div class="timing-group">
+            <input type="text" id="refTestTitle" class="input" placeholder="Title (e.g., Ref Test)" value="Ref Test">
+            <input type="time" id="refTestInput" class="input">
+            <button class="set-button" onclick="setCountdownTime('refTest')">Set Time</button>
+        </div>
+        <input type="text" id="vorInput" class="input" placeholder="VOR Number">
+        <button class="set-button" onclick="setVorNumber()">Set VOR</button>
+        <input type="text" id="venueInput" class="input" placeholder="Venue">
+        <button class="set-button" onclick="setVenue()">Set Venue</button>
+        <button id="confirmButton" class="set-button" onclick="confirmTimings()">Confirm Timings</button>
+    </div>
+    <div id="countdown"></div>
+    <div id="pitchAccess" class="countdown-box"></div>
+    <div id="endToEnd" class="countdown-box"></div>
+    <div id="syncPans" class="countdown-box"></div>
+    <div id="refTest" class="countdown-box"></div>
+    <div id="vorDisplay"></div>
+    <div id="venueDisplay"></div>
+
+    <script>
+        let textElem = document.getElementById("clocktext"), countdownIntervals = {}, kickoffTime;
+
+        function updateClock() {
+            let d = new Date(), s = d.toTimeString().slice(0, 8);
+            textElem.textContent = s;
+            setTimeout(updateClock, 1020 - d.getMilliseconds());
+        }
+
+        function setKickoffTime() {
+            let title = document.getElementById("kickoffTitle").value;
+            kickoffTime = setEventTime("kickoffInput", title);
+            startCountdown('countdown', kickoffTime, title, true);
+        }
+
+        function setCountdownTime(id) {
+            let title = document.getElementById(id + "Title").value;
+            let targetTime = setEventTime(id + "Input", title);
+            startCountdown(id, targetTime, title, false);
+        }
+
+        function setEventTime(inputId, title) {
+            let inputElem = document.getElementById(inputId);
+            let targetTime = new Date();
+            let [h, m] = inputElem.value.split(':').map(Number);
+            targetTime.setHours(h, m, 0);
+            if (targetTime < new Date()) targetTime.setDate(targetTime.getDate() + 1);
+            return targetTime;
+        }
+
+        function startCountdown(id, targetTime, label, isKickoff) {
+    clearInterval(countdownIntervals[id]);
+    let box = document.getElementById(id);
+    box.style.display = "block";
+    box.style.opacity = 1; // Ensure the box is visible
+    countdownIntervals[id] = setInterval(() => {
+        let now = new Date(), remainingTime = targetTime - now;
+        if (remainingTime > 0) {
+            let hours = Math.floor(remainingTime / 3600000), minutes = Math.floor((remainingTime % 3600000) / 60000);
+            box.textContent = `${label}: - ${hours}h ${minutes}m`;
+            if (isKickoff) {
+                // Check if the text is "Match Live" to avoid color change
+                if (box.textContent === "Match Live") {
+                    box.style.color = "green"; // Ensure "Match Live" text stays green
+                } else {
+                    box.style.color = remainingTime <= 300000 ? "red" : remainingTime <= 1800000 ? "orange" : "white";
+                }
+            } else {
+                box.style.color = remainingTime <= 300000 ? "red" : remainingTime <= 1800000 ? "orange" : "white";
+            }
+        } else {
+            clearInterval(countdownIntervals[id]);
+            if (isKickoff) {
+                box.textContent = "Match Live";
+                box.classList.add("match-live");
+                // Ensure the color stays green for "Match Live"
+                box.style.color = "green";
+                // Add a class to trigger the fade-in effect
+                setTimeout(() => {
+                    box.classList.remove("match-live");
+                }, 1000); // Wait for the animation to complete
+            } else {
+                box.style.opacity = 0; // Fade out the box
+                setTimeout(() => {
+                    box.style.display = "none";
+                }, 1000); // Hide the box after fade-out
+            }
+        }
+    }, 1000);
+}
+
+        function setVorNumber() { 
+            document.getElementById("vorDisplay").textContent = "VOR " + document.getElementById("vorInput").value; 
+        }
+        
+        function setVenue() { 
+            document.getElementById("venueDisplay").textContent = document.getElementById("venueInput").value; 
+        }
+
+        function confirmTimings() { 
+            document.getElementById('inputContainer').style.display='none'; 
+        }
+        
+        updateClock();
+    </script>
+</body>
+</html>

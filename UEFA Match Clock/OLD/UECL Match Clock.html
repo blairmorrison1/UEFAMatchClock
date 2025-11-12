@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!-- Clock from https://www.nayuki.io/res/full-screen-clock-javascript/full-screen-clock-24hr-with-seconds.html -->
+<html style="height:100%; margin:0; padding:0" class="gr__nayuki_io"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		
+		<title>Match Clock</title>
+		<style type="text/css">
+			/* Customizable font and colors */
+			html {
+				font-family: sans-serif;
+				font-weight: bold;
+				color: #FFFFFF;
+				background-image: url("UECL_background.png");
+			}
+			#countdown {
+				position : absolute;
+				bottom : 0;
+				height : 200px;
+				justify : center;
+				margin-top : 40px;
+				font-size : 80px;
+			  }
+		</style>
+	</head>
+	
+	<body style="display:flex; height:100%; margin:0; padding:0; justify-content:center; align-items:center" data-gr-c-s-loaded="true">
+		<span id="clocktext" style="font-kerning: none; font-size: 323.775pt;">13:44:52</span>
+		
+		<script type="text/javascript">
+			"use strict";
+			
+			var textElem = document.getElementById("clocktext");
+			var targetWidth = 0.9;  // Proportion of full screen width
+			var curFontSize = 20;  // Do not change
+			var interval;
+			var minutes = 15;
+			var seconds = 0;
+			
+			function updateClock() {
+				var d = new Date();
+				var s = "";
+				s += (10 > d.getHours  () ? "0" : "") + d.getHours  () + ":";
+				s += (10 > d.getMinutes() ? "0" : "") + d.getMinutes() + ":";
+				s += (10 > d.getSeconds() ? "0" : "") + d.getSeconds();
+				textElem.textContent = s;
+				setTimeout(updateClock, 1000 - d.getTime() % 1000 + 20);
+			}
+			
+			function updateTextSize() {
+				for (var i = 0; 3 > i; i++) {  // Iterate for better better convergence
+					curFontSize *= targetWidth / (textElem.offsetWidth / textElem.parentNode.offsetWidth);
+					textElem.style.fontSize = curFontSize + "pt";
+				}
+			}
+			
+			updateClock();
+			updateTextSize();
+			window.addEventListener("resize", updateTextSize);
+			
+		
+			//var count_interval;
+			//var count_minutes = 15;
+			//var count_seconds = 00;
+		
+			function countdown(element) {
+				interval = setInterval(function() {
+					var el = document.getElementById(element);
+					if(seconds == 0) {
+						if(minutes == 0) {
+							el.innerHTML = "";                    
+							clearInterval(interval); 
+							return;
+						} else {
+							minutes--;
+							seconds = 59;
+						}
+					}
+					if(minutes > 0) {
+						var minute_text = minutes + (minutes > 1 ? ' mintues' : ' minute');
+					} else {
+						var minute_text = '';
+					}
+					var second_text = seconds > 1 ? ' seconds' : ' second';
+					el.innerHTML = 'Kick Off in ' + minute_text + ' ' + seconds + ' ' + second_text + '';
+					seconds--;
+				}, 1000);
+			}			
+			
+			//<input type="button" onclick="minutes=15;seconds=0;" value="Reset" />
+			
+		</script>
+	
+
+	<div id='countdown'>
+	
+	</div>
+	
+	
+</body></html>

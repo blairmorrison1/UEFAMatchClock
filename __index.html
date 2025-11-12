@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" style="height:100%;margin:0;padding:0">
+<head>
+<meta charset="UTF-8">
+<title>UEFA Match Clock</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  html,body{
+    margin:0;padding:0;height:100%;width:100%;
+    box-sizing:border-box;
+    font-family:'Roboto',Helvetica,Arial,sans-serif;
+    font-variant:tabular-nums;font-feature-settings:"tnum";
+    color:#fff;background:#000 center/cover no-repeat;
+    transition:background-image .6s ease-in-out;
+    overflow:hidden;display:flex;flex-direction:column;align-items:center;
+  }
+
+  /* Selector panel */
+  .selectors{
+    position:absolute;top:4vh;
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+  }
+  input[type="date"],select{
+    background:#181818;color:#fff;font-size:1.2rem;border:1px solid #444;
+    padding:8px 12px;border-radius:6px;outline:none;cursor:pointer;
+    width:260px;text-align:center;
+  }
+
+  /* Clock at top */
+  #clocktext{
+    font-size:280pt;
+    font-weight:700;
+    text-align:center;
+    margin-top:8vh;
+    margin-bottom:2vh;
+    text-shadow:0 0 6px rgba(0,0,0,.25);
+  }
+
+  /* Teams below clock */
+  .match-header{
+    margin-top:2vh;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    opacity:0;
+  }
+  .match-header.fade-in{
+    display:flex;
+    animation:fadeInTeams 0.9s ease forwards;
+  }
+  @keyframes fadeInTeams{
+    from{opacity:0;transform:translateY(20px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+
+  .teams-row{
+    display:flex;align-items:center;justify-content:center;
+    gap:70px;width:85%;max-width:1800px;
+  }
+  .team{display:flex;align-items:center;justify-content:center;gap:25px;}
+  .team-logo{width:140px;height:140px;object-fit:contain;}
+  .team-name{
+    font-weight:700;font-size:5.2rem;text-transform:uppercase;
+    color:#fff;text-align:center;max-width:600px;line-height:1;
+  }
+  .vs{font-weight:700;font-size:4.5rem;color:#fff;padding:0 25px;}
+
+  /* Unified info at bottom */
+  .info-section{
+    position:absolute;
+    bottom:3vh;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:10px;
+    opacity:0;
+  }
+  .info-section.fade-in{
+    display:flex;
+    animation:fadeInInfo 1s ease forwards;
+  }
+
+  #kickoffTime{
+    font-size:2.4rem;
+    font-weight:700;
+    letter-spacing:0.03em;
+    color:#fff;
+  }
+  #countdown{
+    font-size:1.8rem;
+    font-weight:500;
+    color:#fff;
+  }
+  .live{
+    color:#00ff5e;
+    font-weight:700;
+    animation:pulse 1s ease-in-out infinite alternate;
+  }
+  @keyframes pulse{from{opacity:.7;}to{opacity:1;}}
+
+  /* Match info single column */
+  .info-panel{
+    text-align:center;
+    font-size:1.8rem;
+    line-height:2.2rem;
+    color:#fff;
+  }
+  .info-label{font-weight:500;color:#ffffffcc;}
+
+  @keyframes fadeInInfo{
+    from{opacity:0;transform:translateY(15px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+</style>
+</head>
+
+<body>
+  <div class="selectors" id="selectors">
+    <input type="date" id="matchDate"/>
+    <select id="matchSelect"><option value="">Select a match</option></select>
+  </div>
+
+  <!-- Clock -->
+  <span id="clocktext">00:00:00</span>
+
+  <!-- Teams -->
+  <div class="match-header" id="matchHeader">
+    <div class="teams-row">
+      <div class="team home">
+        <img id="homeLogo" class="team-logo" src="" alt="">
+        <span class="team-name" id="homeName"></span>
+      </div>
+      <div class="vs" id="vsText">vs</div>
+      <div class="team away">
+        <span class="team-name" id="awayName"></span>
+        <img id="awayLogo" class="team-logo" src="" alt="">
+      </div>
+    </div>
+  </div>
+
+  <!-- Info below -->
+  <div class="info-section" id="infoSection">
+    <div id="kickoffTime"></div>
+    <div id="countdown"></div>
+    <div class="info-panel" id="infoPanel">
+      <div><span class="info-label">Match ID:</span> <span id="matchID">—</span></div>
+      <div><span class="info-label">Stadium:</span> <span id="stadiumSponsor">—</span></div>
+      <div><span class="info-label">City:</span> <span id="stadiumCity">—</span></div>
+    </div>
+  </div>
+
+  <script>
+    const selDate=document.getElementById('matchDate'),
+          selMatch=document.getElementById('matchSelect'),
+          selectors=document.getElementById('selectors'),
+          header=document.getElementById('matchHeader'),
+          infoSection=document.getElementById('infoSection'),
+          home=document.getElementById('homeName'),
+          away=document.getElementById('awayName'),
+          hLogo=document.getElementById('homeLogo'),
+          aLogo=document.getElementById('awayLogo'),
+          mID=document.getElementById('matchID'),
+          sName=document.getElementById('stadiumSponsor'),
+          sCity=document.getElementById('stadiumCity'),
+          koElem=document.getElementById('kickoffTime'),
+          cdElem=document.getElementById('countdown');
+
+    let matches=[],timer;
+
+    const teamName=t=>t?.translations?.displayName?.EN||t?.internationalName||t?.teamCode||'Unknown';
+    function bgCode(m){const c=m?.competition?.code,i=m?.competition?.id;
+      if(!c)return'default';
+      if(['UECL','UCONF'].includes(c))return'UCONF';
+      if(['FWC','EQ','WC'].includes(c)||i==17)return'EQ';
+      return c;}
+    function setBG(m){
+      document.body.style.backgroundImage = `url('../MatchClock/Background/${bgCode(m)}.png')`;
+    }
+
+    async function load(){
+      try{
+        const r=await fetch('../UEFAMatchDatabase/output/uefa_matches.json?_='+Date.now());
+        const d=await r.json();
+        matches=Array.isArray(d)?d:Array.isArray(d.matches)?d.matches:[d];
+        const dates=[...new Set(matches.map(m=>m.kickOffTime?.date))].sort();
+        if(dates[0]){selDate.value=dates[0];fill(dates[0]);}
+      }catch(e){console.error(e);}
+    }
+    function fill(date){
+      selMatch.innerHTML='<option value="">Select a match</option>';
+      matches.filter(m=>m.kickOffTime?.date===date).forEach(m=>{
+        const o=document.createElement('option'),
+              ko=m.kickOffTime?.dateTime?new Date(m.kickOffTime.dateTime):null,
+              t=ko?ko.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'TBC';
+        o.value=m.id;
+        o.textContent=`${teamName(m.homeTeam)} vs ${teamName(m.awayTeam)} – ${t}`;
+        selMatch.appendChild(o);
+      });
+    }
+    selDate.addEventListener('change',e=>fill(e.target.value));
+
+    function countdown(t){
+      clearInterval(timer);
+      timer=setInterval(()=>{
+        const now=new Date(),d=t-now;
+        if(d<=0){
+          cdElem.textContent='Match Live';
+          cdElem.classList.add('live');
+          return clearInterval(timer);
+        }
+        const h=Math.floor(d/3600000),
+              m=Math.floor(d%3600000/60000),
+              s=Math.floor(d%60000/1000);
+        cdElem.textContent=`Countdown to Kick-off: ${h.toString().padStart(2,'0')}h ${m.toString().padStart(2,'0')}m ${s.toString().padStart(2,'0')}s`;
+      },1000);
+    }
+
+    selMatch.addEventListener('change',()=>{
+      const id=selMatch.value,m=matches.find(x=>x.id==id);if(!m)return;
+      home.textContent=teamName(m.homeTeam);away.textContent=teamName(m.awayTeam);
+      hLogo.src=m.homeTeam?.mediumLogoUrl||'';aLogo.src=m.awayTeam?.mediumLogoUrl||'';
+      mID.textContent=m.id||'—';
+      sName.textContent=m.stadium?.translations?.sponsorName?.EN||
+                         m.stadium?.translations?.officialName?.EN||'Unknown Stadium';
+      sCity.textContent=m.stadium?.city?.translations?.name?.EN||'Unknown City';
+      setBG(m);
+      const ko=m.kickOffTime?.dateTime?new Date(m.kickOffTime.dateTime):null;
+      if(ko&&!isNaN(ko)){
+        koElem.textContent='Kick-off: '+ko.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+        countdown(ko);
+      }else{
+        koElem.textContent='Kick-off: TBC';cdElem.textContent='';
+      }
+
+      selectors.style.display='none';
+      header.classList.remove('fade-in'); infoSection.classList.remove('fade-in');
+      void header.offsetWidth; void infoSection.offsetWidth;
+      header.classList.add('fade-in');
+      infoSection.classList.add('fade-in');
+    });
+
+    const txt=document.getElementById('clocktext');
+    (function tick(){
+      const d=new Date(),h=d.getHours().toString().padStart(2,'0'),
+            m=d.getMinutes().toString().padStart(2,'0'),
+            s=d.getSeconds().toString().padStart(2,'0');
+      txt.textContent=`${h}:${m}:${s}`;
+      setTimeout(tick,1020-d.getMilliseconds());
+    })();
+    load();
+  </script>
+</body>
+</html>

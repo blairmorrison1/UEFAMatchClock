@@ -11,25 +11,141 @@
     box-sizing:border-box;
     font-family:'Roboto',Helvetica,Arial,sans-serif;
     font-variant:tabular-nums;font-feature-settings:"tnum";
-    color:#fff;background:#000 center/cover no-repeat;
+    color:#fff;
     transition:background-image .6s ease-in-out;
-    overflow:hidden;display:flex;flex-direction:column;align-items:center;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
   }
 
-  /* Selector panel */
-  .selectors{
-    position:absolute;top:4vh;
-    display:flex;flex-direction:column;align-items:center;gap:10px;
+  /* Base neutral background (used when no PNG set) */
+  body{
+    background-color:#0a0a0c;
+    background-repeat:no-repeat;
+    background-position:center;
+    background-size:cover;
   }
-  input[type="date"],select{
-    background:#181818;color:#fff;font-size:1.2rem;border:1px solid #444;
-    padding:8px 12px;border-radius:6px;outline:none;cursor:pointer;
-    width:260px;text-align:center;
+
+  /* Selector panel — redesigned */
+  .selectors {
+    position: relative;
+    margin-top: 3vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 26px;
+    border-radius: 18px;
+    backdrop-filter: blur(12px);
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 0 25px rgba(0,0,0,0.45);
+    animation: subtleGlow 3s ease-in-out infinite alternate;
+    transition: opacity .5s ease, height .5s ease;
+    height:auto;
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+
+  @keyframes subtleGlow {
+    from { box-shadow: 0 0 22px rgba(255,255,255,0.12); }
+    to   { box-shadow: 0 0 35px rgba(255,255,255,0.25); }
+  }
+
+  /* Inputs */
+  input[type="date"], select {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 1.1rem;
+    color: #fff;
+    width: 220px;
+    cursor: pointer;
+    transition: 0.25s ease;
+    text-align: center;
+  }
+
+  input:hover, select:hover {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.35);
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    background: rgba(255,255,255,0.20);
+    border-color: #fff;
+  }
+
+  select option {
+    background: #181818;
+    color: #fff;
+  }
+
+  @media (max-width: 900px) {
+    .selectors {
+      flex-direction: column;
+      gap: 12px;
+    }
+  }
+
+  /* Manual Mode */
+  .manual-btn {
+    margin-top: 2vh;
+    padding: 10px 22px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    transition: 0.2s;
+  }
+
+  .manual-btn:hover {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.35);
+  }
+
+  .manual-mode {
+    margin-top: 2vh;
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    width: 300px;
+    padding: 18px 26px;
+    align-items: center;
+    text-align: center;
+    border-radius: 18px;
+    backdrop-filter: blur(12px);
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 0 25px rgba(0,0,0,0.45);
+    animation: subtleGlow 3s ease-in-out infinite alternate;
+    position:relative;
+    z-index:5;
+  }
+
+  .manual-input {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 10px;
+    padding: 12px 15px;
+    font-size: 1rem;
+    color: white;
+    text-align: center;
+  }
+
+  .manual-input:focus {
+    background: rgba(255,255,255,0.15);
+    outline: none;
   }
 
   /* Clock at top */
   #clocktext{
-    font-size:280pt;
+    font-size:300pt;
     font-weight:700;
     text-align:center;
     margin-top:8vh;
@@ -39,17 +155,19 @@
 
   /* Teams below clock */
   .match-header{
-    margin-top:2vh;
+    margin-top:0;
     display:none;
     flex-direction:column;
     align-items:center;
     text-align:center;
     opacity:0;
   }
+
   .match-header.fade-in{
     display:flex;
     animation:fadeInTeams 0.9s ease forwards;
   }
+
   @keyframes fadeInTeams{
     from{opacity:0;transform:translateY(20px);}
     to{opacity:1;transform:translateY(0);}
@@ -59,6 +177,7 @@
     display:flex;align-items:center;justify-content:center;
     gap:70px;width:85%;max-width:1800px;
   }
+
   .team{display:flex;align-items:center;justify-content:center;gap:25px;}
   .team-logo{width:140px;height:140px;object-fit:contain;}
   .team-name{
@@ -78,6 +197,7 @@
     gap:10px;
     opacity:0;
   }
+
   .info-section.fade-in{
     display:flex;
     animation:fadeInInfo 1s ease forwards;
@@ -89,168 +209,581 @@
     letter-spacing:0.03em;
     color:#fff;
   }
+
   #countdown{
     font-size:1.8rem;
     font-weight:500;
     color:#fff;
   }
-  .live{
-    color:#00ff5e;
-    font-weight:700;
+
+  .live{ color:#00ff5e; font-weight:700;
     animation:pulse 1s ease-in-out infinite alternate;
   }
+
   @keyframes pulse{from{opacity:.7;}to{opacity:1;}}
 
-  /* Match info single column */
   .info-panel{
     text-align:center;
     font-size:1.8rem;
     line-height:2.2rem;
     color:#fff;
   }
+
   .info-label{font-weight:500;color:#ffffffcc;}
 
   @keyframes fadeInInfo{
     from{opacity:0;transform:translateY(15px);}
     to{opacity:1;transform:translateY(0);}
   }
+
+  /* Hide logos when empty */
+  .team-logo[src=""]{
+    display: none;
+  }
+
+  /* Extra timings toggle + config inside selectors */
+  .extra-toggle {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:0.95rem;
+    color:#ffffffdd;
+    cursor:pointer;
+  }
+  .extra-toggle input {
+    width:auto;
+  }
+
+  .extra-config {
+    display:none;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    align-items:center;
+  }
+
+  /* Helper info box for extra timings */
+  .extra-info {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.20);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #ffffffcc;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    text-align: center;
+    line-height: 1.3;
+    display: none; /* shown when checkbox enabled */
+  }
+
+  /* Floating extra timings display (bottom-right) */
+  .extra-display{
+    position:absolute;
+    right:3vw;
+    bottom:3vh;
+    min-width:260px;
+    max-width:340px;
+    padding:14px 18px;
+    border-radius:16px;
+    backdrop-filter:blur(10px);
+    background:rgba(0,0,0,0.5);
+    border:1px solid rgba(255,255,255,0.18);
+    box-shadow:0 0 18px rgba(0,0,0,0.6);
+    font-size:0.95rem;
+    display:none;
+  }
+  .extra-title{
+    font-weight:600;
+    font-size:1rem;
+    margin-bottom:6px;
+    text-align:right;
+    color:#ffffffdd;
+  }
+  .extra-row{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin:2px 0;
+    font-variant-numeric:tabular-nums;
+  }
+  .extra-name{
+    opacity:0.9;
+  }
+  .extra-time{
+    font-weight:600;
+  }
+
+  .extra-upcoming   { color:#ffffff; }
+  .extra-amber      { color:#ffb347; }
+  .extra-red        { color:#ff4c4c; }
+  .extra-ongoing    { color:#00ff8a; }
+  .extra-complete   { color:#aaaaaa; }
+
 </style>
 </head>
 
 <body>
-  <div class="selectors" id="selectors">
-    <input type="date" id="matchDate"/>
-    <select id="matchSelect"><option value="">Select a match</option></select>
+
+<!-- Clock -->
+<span id="clocktext">00:00:00</span>
+
+<!-- Automatic mode selectors -->
+<div class="selectors" id="selectors">
+  <input type="date" id="matchDate"/>
+  <select id="matchSelect"><option value="">Select a match</option></select>
+
+  <!-- Extra timings toggle + config -->
+  <label class="extra-toggle">
+    <input type="checkbox" id="useExtraTimings">
+    <span>Use additional timings</span>
+  </label>
+
+  <div class="extra-config" id="extraConfig">
+    <div id="extraInfo" class="extra-info">
+      Add all additional timings before selecting a match.<br>
+      Selecting a match will hide this panel.
+    </div>
+
+    <select id="extraType" class="manual-input">
+      <option value="">Choose event</option>
+      <option value="Pitch Access">Pitch Access</option>
+      <option value="Nudge">Nudge</option>
+      <option value="End to End Test">End to End Test</option>
+      <option value="Ref Test">Ref Test</option>
+      <option value="CUSTOM">Custom...</option>
+    </select>
+
+    <input id="customEventName" class="manual-input" placeholder="Custom event name" style="display:none;">
+
+    <input id="extraTime" class="manual-input" type="time">
+
+    <button id="addExtra" type="button" class="manual-btn">Add timing</button>
   </div>
+</div>
 
-  <!-- Clock -->
-  <span id="clocktext">00:00:00</span>
+<!-- Manual mode toggle -->
+<button id="manualModeBtn" class="manual-btn">Manual Mode</button>
 
-  <!-- Teams -->
-  <div class="match-header" id="matchHeader">
-    <div class="teams-row">
-      <div class="team home">
-        <img id="homeLogo" class="team-logo" src="" alt="">
-        <span class="team-name" id="homeName"></span>
-      </div>
-      <div class="vs" id="vsText">vs</div>
-      <div class="team away">
-        <span class="team-name" id="awayName"></span>
-        <img id="awayLogo" class="team-logo" src="" alt="">
-      </div>
+<!-- Manual Mode Panel -->
+<div class="manual-mode" id="manualMode">
+  <input type="text" id="manualHome" class="manual-input" placeholder="Home team">
+  <input type="text" id="manualAway" class="manual-input" placeholder="Away team">
+
+  <select id="manualBackground" class="manual-input">
+    <option value="NEUTRAL">Neutral Background</option>
+    <option value="UCL">Champions League</option>
+    <option value="UEL">Europa League</option>
+    <option value="EQ">Qualifiers</option>
+    <option value="UCONF">Nations League</option>
+    <option value="UNL">Nations League (UNL)</option>
+    <option value="USC">Super Cup</option>
+    <option value="UWCL">Women&rsquo;s Champions League</option>
+  </select>
+
+  <button id="manualApply" class="manual-btn apply">Apply</button>
+</div>
+
+<!-- Teams -->
+<div class="match-header" id="matchHeader">
+  <div class="teams-row">
+    <div class="team home">
+      <img id="homeLogo" class="team-logo" src="" alt="">
+      <span class="team-name" id="homeName"></span>
+    </div>
+    <div class="vs" id="vsText">vs</div>
+    <div class="team away">
+      <span class="team-name" id="awayName"></span>
+      <img id="awayLogo" class="team-logo" src="" alt="">
     </div>
   </div>
+</div>
 
-  <!-- Info below -->
-  <div class="info-section" id="infoSection">
-    <div id="kickoffTime"></div>
-    <div id="countdown"></div>
-    <div class="info-panel" id="infoPanel">
-      <div><span class="info-label">Match ID:</span> <span id="matchID">—</span></div>
-      <div><span class="info-label">Stadium:</span> <span id="stadiumSponsor">—</span></div>
-      <div><span class="info-label">City:</span> <span id="stadiumCity">—</span></div>
-    </div>
+<!-- Info below -->
+<div class="info-section" id="infoSection">
+  <div id="kickoffTime"></div>
+  <div id="countdown"></div>
+  <div class="info-panel" id="infoPanel">
+    <div><span class="info-label">Match ID:</span> <span id="matchID">—</span></div>
+    <div><span class="info-label">Stadium:</span> <span id="stadiumSponsor">—</span></div>
+    <div><span class="info-label">City:</span> <span id="stadiumCity">—</span></div>
   </div>
+</div>
 
-  <script>
-    const selDate=document.getElementById('matchDate'),
-          selMatch=document.getElementById('matchSelect'),
-          selectors=document.getElementById('selectors'),
-          header=document.getElementById('matchHeader'),
-          infoSection=document.getElementById('infoSection'),
-          home=document.getElementById('homeName'),
-          away=document.getElementById('awayName'),
-          hLogo=document.getElementById('homeLogo'),
-          aLogo=document.getElementById('awayLogo'),
-          mID=document.getElementById('matchID'),
-          sName=document.getElementById('stadiumSponsor'),
-          sCity=document.getElementById('stadiumCity'),
-          koElem=document.getElementById('kickoffTime'),
-          cdElem=document.getElementById('countdown');
+<!-- Floating Extra Timings panel -->
+<div class="extra-display" id="extraDisplay">
+  <div class="extra-title">Additional Timings</div>
+  <div id="extraRows"></div>
+</div>
 
-    let matches=[],timer;
+<script>
+const selDate      = document.getElementById('matchDate'),
+      selMatch     = document.getElementById('matchSelect'),
+      selectors    = document.getElementById('selectors'),
+      header       = document.getElementById('matchHeader'),
+      infoSection  = document.getElementById('infoSection'),
+      home         = document.getElementById('homeName'),
+      away         = document.getElementById('awayName'),
+      hLogo        = document.getElementById('homeLogo'),
+      aLogo        = document.getElementById('awayLogo'),
+      mID          = document.getElementById('matchID'),
+      sName        = document.getElementById('stadiumSponsor'),
+      sCity        = document.getElementById('stadiumCity'),
+      koElem       = document.getElementById('kickoffTime'),
+      cdElem       = document.getElementById('countdown'),
+      manualBtn    = document.getElementById('manualModeBtn'),
+      manualPanel  = document.getElementById('manualMode'),
+      manualHome   = document.getElementById('manualHome'),
+      manualAway   = document.getElementById('manualAway'),
+      manualBG     = document.getElementById('manualBackground'),
+      manualApply  = document.getElementById('manualApply');
 
-    const teamName=t=>t?.translations?.displayName?.EN||t?.internationalName||t?.teamCode||'Unknown';
-    function bgCode(m){const c=m?.competition?.code,i=m?.competition?.id;
-      if(!c)return'default';
-      if(['UECL','UCONF'].includes(c))return'UCONF';
-      if(['FWC','EQ','WC'].includes(c)||i==17)return'EQ';
-      return c;}
-    function setBG(m){
-      document.body.style.backgroundImage = `url('../MatchClock/Background/${bgCode(m)}.png')`;
+const useExtra       = document.getElementById('useExtraTimings');
+const extraConfig    = document.getElementById('extraConfig');
+const extraInfo      = document.getElementById('extraInfo');
+const extraType      = document.getElementById('extraType');
+const customEventName= document.getElementById('customEventName');
+const extraTimeInput = document.getElementById('extraTime');
+const addExtraBtn    = document.getElementById('addExtra');
+const extraDisplay   = document.getElementById('extraDisplay');
+const extraRows      = document.getElementById('extraRows');
+
+let matches = [], timer, extraTimer = null;
+let extraEvents = [];
+
+// ----- TEAM / BACKGROUND HELPERS -----
+function teamName(t){
+  return t?.translations?.displayName?.EN || t?.internationalName || t?.teamCode || 'Unknown';
+}
+
+function bgCode(m){
+  const c = m?.competition?.code, i = m?.competition?.id;
+  if(!c) return null;
+  if(['FWC','EQ','WC'].includes(c) || i==17) return 'EQ';
+  return c; // UCL, UEL, UCONF, UNL, USC, UWCL etc.
+}
+
+function setBG(m){
+  const code  = bgCode(m);
+  const known = ['EQ','UCL','UCONF','UEL','UNL','USC','UWCL'];
+
+  if(code && known.includes(code)){
+    document.body.style.backgroundImage = `url('Background/${code}.png')`;
+  } else {
+    document.body.style.backgroundImage = 'none';
+    document.body.style.backgroundColor = '#0a0a0c';
+  }
+}
+
+// ----- LOAD MATCHES -----
+async function load(){
+  try{
+    const r=await fetch('uefa_matches.json?_=' + Date.now());
+    const d=await r.json();
+    matches=Array.isArray(d)?d:(Array.isArray(d.matches)?d.matches:[d]);
+    const dates=[...new Set(matches.map(m=>m.kickOffTime?.date))].sort();
+    if(dates[0]){selDate.value=dates[0];fill(dates[0]);}
+  }catch(e){console.error(e);}
+}
+
+function fill(date){
+  selMatch.innerHTML='<option value="">Select a match</option>';
+  matches.filter(m=>m.kickOffTime?.date===date).forEach(m=>{
+    const o=document.createElement('option'),
+          ko=m.kickOffTime?.dateTime?new Date(m.kickOffTime.dateTime):null,
+          t=ko?ko.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'TBC';
+    o.value=m.id;
+    o.textContent=`${teamName(m.homeTeam)} vs ${teamName(m.awayTeam)} – ${t}`;
+    selMatch.appendChild(o);
+  });
+}
+selDate.addEventListener('change',e=>fill(e.target.value));
+
+// ----- MAIN KICK-OFF COUNTDOWN -----
+function countdown(t){
+  clearInterval(timer);
+  timer=setInterval(()=>{
+    const now=new Date(),d=t-now;
+    if(d<=0){
+      cdElem.textContent='Match Live';
+      cdElem.classList.add('live');
+      return clearInterval(timer);
     }
+    const totalSeconds=Math.floor(d/1000),
+          weeks=Math.floor(totalSeconds/604800),
+          days=Math.floor((totalSeconds%604800)/86400),
+          hours=Math.floor((totalSeconds%86400)/3600),
+          minutes=Math.floor((totalSeconds%3600)/60),
+          seconds=totalSeconds%60;
 
-    async function load(){
-      try{
-        const r=await fetch('../UEFAMatchDatabase/output/uefa_matches.json?_='+Date.now());
-        const d=await r.json();
-        matches=Array.isArray(d)?d:Array.isArray(d.matches)?d.matches:[d];
-        const dates=[...new Set(matches.map(m=>m.kickOffTime?.date))].sort();
-        if(dates[0]){selDate.value=dates[0];fill(dates[0]);}
-      }catch(e){console.error(e);}
-    }
-    function fill(date){
-      selMatch.innerHTML='<option value="">Select a match</option>';
-      matches.filter(m=>m.kickOffTime?.date===date).forEach(m=>{
-        const o=document.createElement('option'),
-              ko=m.kickOffTime?.dateTime?new Date(m.kickOffTime.dateTime):null,
-              t=ko?ko.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'TBC';
-        o.value=m.id;
-        o.textContent=`${teamName(m.homeTeam)} vs ${teamName(m.awayTeam)} – ${t}`;
-        selMatch.appendChild(o);
-      });
-    }
-    selDate.addEventListener('change',e=>fill(e.target.value));
+    let parts=[];
+    if(weeks>0)parts.push(`${weeks}w`);
+    if(days>0)parts.push(`${days}d`);
+    if(hours>0)parts.push(`${hours}h`);
+    if(minutes>0)parts.push(`${minutes}m`);
+    parts.push(`${seconds}s`);
 
-    function countdown(t){
-      clearInterval(timer);
-      timer=setInterval(()=>{
-        const now=new Date(),d=t-now;
-        if(d<=0){
-          cdElem.textContent='Match Live';
-          cdElem.classList.add('live');
-          return clearInterval(timer);
-        }
-        const h=Math.floor(d/3600000),
-              m=Math.floor(d%3600000/60000),
-              s=Math.floor(d%60000/1000);
-        cdElem.textContent=`Countdown to Kick-off: ${h.toString().padStart(2,'0')}h ${m.toString().padStart(2,'0')}m ${s.toString().padStart(2,'0')}s`;
-      },1000);
-    }
+    cdElem.textContent=`Countdown to Kick-off: ${parts.join(' ')}`;
+  },1000);
+}
 
-    selMatch.addEventListener('change',()=>{
-      const id=selMatch.value,m=matches.find(x=>x.id==id);if(!m)return;
-      home.textContent=teamName(m.homeTeam);away.textContent=teamName(m.awayTeam);
-      hLogo.src=m.homeTeam?.mediumLogoUrl||'';aLogo.src=m.awayTeam?.mediumLogoUrl||'';
-      mID.textContent=m.id||'—';
-      sName.textContent=m.stadium?.translations?.sponsorName?.EN||
-                         m.stadium?.translations?.officialName?.EN||'Unknown Stadium';
-      sCity.textContent=m.stadium?.city?.translations?.name?.EN||'Unknown City';
-      setBG(m);
-      const ko=m.kickOffTime?.dateTime?new Date(m.kickOffTime.dateTime):null;
-      if(ko&&!isNaN(ko)){
-        koElem.textContent='Kick-off: '+ko.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-        countdown(ko);
+// ----- EXTRA TIMINGS LOGIC -----
+useExtra.addEventListener('change', () => {
+  const enabled = useExtra.checked;
+  extraConfig.style.display = enabled ? 'flex' : 'none';
+  extraInfo.style.display   = enabled ? 'block' : 'none';
+
+  if(!enabled){
+    extraEvents = [];
+    updateExtraDisplay();
+  }
+});
+
+extraType.addEventListener('change',()=>{
+  if(extraType.value === 'CUSTOM'){
+    customEventName.style.display = 'block';
+  }else{
+    customEventName.style.display = 'none';
+    customEventName.value = '';
+  }
+});
+
+addExtraBtn.addEventListener('click',()=>{
+
+  if(!useExtra.checked) return;
+
+  let name;
+  if(!extraType.value) return;
+
+  if(extraType.value === 'CUSTOM'){
+    if(!customEventName.value.trim()) return;
+    name = customEventName.value.trim();
+  } else {
+    name = extraType.value;
+  }
+
+  if(!extraTimeInput.value) return;
+
+  // Prevent duplicates — same event only once
+  if (extraEvents.some(e => e.name === name)) {
+    alert(`The event "${name}" is already added.`);
+    return;
+  }
+
+  const [h,m] = extraTimeInput.value.split(':').map(Number);
+  const now = new Date();
+  const evtTime = new Date();
+  evtTime.setHours(h, m, 0, 0);
+  if(evtTime < now){
+    evtTime.setDate(evtTime.getDate()+1);
+  }
+
+  const durationMinutes = (name === 'Nudge') ? 120 : 30;
+  const durationMs = durationMinutes*60*1000;
+
+  extraEvents.push({
+    name,
+    time: evtTime,
+    durationMs
+  });
+
+  updateExtraDisplay();
+  startExtraTimerLoop();
+});
+
+function startExtraTimerLoop(){
+  if(extraTimer !== null) return; // already running
+  extraTimer = setInterval(updateExtraDisplay, 1000);
+}
+
+function updateExtraDisplay(){
+  if(!useExtra.checked || extraEvents.length === 0){
+    extraDisplay.style.display = 'none';
+    return;
+  }
+
+  const now = new Date();
+
+  const decorated = extraEvents.map(evt=>{
+    const startDiff = evt.time - now;
+    const endTime = new Date(evt.time.getTime() + evt.durationMs);
+    let state, displayText, cssClass, sortBucket, sortTime;
+
+    if(startDiff > 0){
+      // Upcoming
+      const totalSeconds = Math.floor(startDiff/1000);
+      const minutes = Math.floor(totalSeconds/60);
+      const hours = Math.floor(minutes/60);
+      const remMin = minutes%60;
+
+      if(minutes > 60){
+        state = 'UPCOMING';
+        cssClass = 'extra-upcoming';
+        displayText = `${hours}h ${remMin}m`;
+      }else if(minutes > 15){
+        state = 'UPCOMING_AMBER';
+        cssClass = 'extra-amber';
+        displayText = `${minutes}m`;
       }else{
-        koElem.textContent='Kick-off: TBC';cdElem.textContent='';
+        state = 'UPCOMING_RED';
+        cssClass = 'extra-red';
+        displayText = `${minutes}m`;
       }
+      sortBucket = 1;
+      sortTime = evt.time.getTime();
+    } else {
+      // Started
+      if(now <= endTime){
+        state = 'ONGOING';
+        cssClass = 'extra-ongoing';
+        displayText = 'Ongoing';
+        sortBucket = 0;
+        sortTime = evt.time.getTime();
+      } else {
+        state = 'COMPLETE';
+        cssClass = 'extra-complete';
+        displayText = 'Complete';
+        sortBucket = 2;
+        sortTime = evt.time.getTime();
+      }
+    }
 
-      selectors.style.display='none';
-      header.classList.remove('fade-in'); infoSection.classList.remove('fade-in');
-      void header.offsetWidth; void infoSection.offsetWidth;
-      header.classList.add('fade-in');
-      infoSection.classList.add('fade-in');
-    });
+    return {evt, state, displayText, cssClass, sortBucket, sortTime};
+  });
 
-    const txt=document.getElementById('clocktext');
-    (function tick(){
-      const d=new Date(),h=d.getHours().toString().padStart(2,'0'),
-            m=d.getMinutes().toString().padStart(2,'0'),
-            s=d.getSeconds().toString().padStart(2,'0');
-      txt.textContent=`${h}:${m}:${s}`;
-      setTimeout(tick,1020-d.getMilliseconds());
-    })();
-    load();
-  </script>
+  decorated.sort((a,b)=>{
+    if(a.sortBucket !== b.sortBucket) return a.sortBucket - b.sortBucket;
+    return a.sortTime - b.sortTime;
+  });
+
+  extraRows.innerHTML = '';
+  decorated.forEach(item=>{
+    const row = document.createElement('div');
+    row.className = `extra-row ${item.cssClass}`;
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'extra-name';
+    nameSpan.textContent = item.evt.name;
+
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'extra-time';
+    timeSpan.textContent = item.displayText;
+
+    row.appendChild(nameSpan);
+    row.appendChild(timeSpan);
+    extraRows.appendChild(row);
+  });
+
+  extraDisplay.style.display = 'block';
+}
+
+// ----- MATCH SELECTION -----
+selMatch.addEventListener('change',()=>{
+  const id=selMatch.value,m=matches.find(x=>x.id==id);if(!m)return;
+  extraInfo.style.display = 'none';
+
+  home.textContent=teamName(m.homeTeam);
+  away.textContent=teamName(m.awayTeam);
+  hLogo.src=m.homeTeam?.mediumLogoUrl||'';
+  aLogo.src=m.awayTeam?.mediumLogoUrl||'';
+
+  mID.textContent=m.id||'—';
+  sName.textContent=m.stadium?.translations?.sponsorName?.EN||
+                     m.stadium?.translations?.officialName?.EN||'Unknown Stadium';
+  sCity.textContent=m.stadium?.city?.translations?.name?.EN||'Unknown City';
+
+  setBG(m);
+
+  const ko=m.kickOffTime?.dateTime?new Date(m.kickOffTime.dateTime):null;
+  if(ko&&!isNaN(ko)){
+    const cetTime=ko.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Paris'});
+    const localTime=ko.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    const cetDate=ko.toLocaleDateString('en-GB',{timeZone:'Europe/Paris'});
+    const localDate=ko.toLocaleDateString('en-GB');
+    const sameTime=(cetTime===localTime)&&(cetDate===localDate);
+
+    koElem.textContent=sameTime
+      ?`Kick-off: ${cetTime} CET`
+      :`Kick-off: ${cetTime} CET (${localTime} local)`;
+
+    countdown(ko);
+  }else{
+    koElem.textContent='Kick-off: TBC';
+    cdElem.textContent='';
+  }
+
+  // Smooth fade + collapse selectors
+  selectors.style.opacity="0";
+  selectors.style.height="0px";
+  selectors.style.pointerEvents="none";
+
+  manualBtn.style.display="none";
+
+  // Animate teams + info
+  header.classList.remove('fade-in');
+  infoSection.classList.remove('fade-in');
+  void header.offsetWidth;
+  void infoSection.offsetWidth;
+
+  header.classList.add('fade-in');
+  infoSection.classList.add('fade-in');
+
+  // Ensure extra panel reflects current state
+  updateExtraDisplay();
+});
+
+// ---------- MANUAL MODE ----------
+manualBtn.addEventListener('click',(e)=>{
+  e.stopPropagation();
+  manualBtn.style.display='none';
+  selectors.style.display='none';
+  manualPanel.style.display='flex';
+});
+
+manualPanel.addEventListener('click',(e)=>e.stopPropagation());
+
+manualApply.addEventListener('click',()=>{
+
+  const h=manualHome.value.trim();
+  const a=manualAway.value.trim();
+  if(!h||!a){alert("Enter both team names");return;}
+
+  home.textContent=h;
+  away.textContent=a;
+  hLogo.src="";
+  aLogo.src="";
+
+  const bg=manualBG.value;
+  if(bg === 'NEUTRAL'){
+    document.body.style.backgroundImage = 'none';
+    document.body.style.backgroundColor = '#0a0a0c';
+  }else{
+    document.body.style.backgroundImage = `url('Background/${bg}.png')`;
+  }
+
+  // Hide bottom info for manual mode (no KO, match ID, etc.)
+  infoSection.style.display='none';
+
+  manualPanel.style.display='none';
+
+  header.classList.remove('fade-in');
+  void header.offsetWidth;
+  header.classList.add('fade-in');
+
+  // Extra timings still valid in manual mode if configured
+  updateExtraDisplay();
+});
+
+// ---------- LIVE CLOCK ----------
+const txt=document.getElementById('clocktext');
+(function tick(){
+  const d=new Date(),h=d.getHours().toString().padStart(2,'0'),
+        m=d.getMinutes().toString().padStart(2,'0'),
+        s=d.getSeconds().toString().padStart(2,'0');
+  txt.textContent=`${h}:${m}:${s}`;
+  setTimeout(tick,1020-d.getMilliseconds());
+})();
+load();
+</script>
 </body>
 </html>

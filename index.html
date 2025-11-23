@@ -181,8 +181,19 @@
   .team{display:flex;align-items:center;justify-content:center;gap:25px;}
   .team-logo{width:140px;height:140px;object-fit:contain;}
   .team-name{
-    font-weight:700;font-size:5.2rem;text-transform:uppercase;
-    color:#fff;text-align:center;max-width:600px;line-height:1;
+    font-weight:700;
+    font-size:5.2rem;
+    text-transform:uppercase;
+    color:#fff;
+    text-align:center;
+    max-width:600px;
+    line-height:1;
+
+    /* smarter wrapping */
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    hyphens: none;
   }
   .vs{font-weight:700;font-size:4.5rem;color:#fff;padding:0 25px;}
 
@@ -456,6 +467,50 @@ function teamName(t){
   return t?.translations?.displayName?.EN || t?.internationalName || t?.teamCode || 'Unknown';
 }
 
+// NEW: smarter wrapping / non-breaking logic for multi-word names
+function formatTeamName(raw){
+  if (!raw) return '';
+
+  const parts = raw.trim().split(' ');
+
+  const prefixes = ['FC', 'AC', 'SC', 'RB', 'SV', 'PSG', 'B.', 'Man'];
+  const suffixes = ['UTD', 'UT', 'UNITED', 'CITY', 'SG', 'FK', 'CF', 'FC'];
+
+  const p0 = parts[0].toUpperCase();
+  const p1 = parts[1]?.toUpperCase();
+
+  // Case 1: Known short football prefix → glue first two words
+  if (parts.length > 1 && prefixes.includes(p0)) {
+    parts[0] = parts[0] + '\u00A0' + parts[1];
+    parts.splice(1, 1);
+  }
+
+  // Case 2: Known football suffix → glue last two words
+  if (
+    parts.length === 2 &&
+    suffixes.includes(p1)
+  ) {
+    return parts[0] + '\u00A0' + parts[1];
+  }
+
+  // Case 3: Two short words like PSG SG, Man Utd
+  if (
+    parts.length === 2 &&
+    parts[0].length <= 4 &&
+    parts[1].length <= 3
+  ) {
+    return parts[0] + '\u00A0' + parts[1];
+  }
+
+  // Case 4: 3+ word names → glue first two to avoid 3 lines
+  if (parts.length > 2) {
+    parts[0] = parts[0] + '\u00A0' + parts[1];
+    parts.splice(1, 1);
+  }
+
+  return parts.join(' ');
+}
+
 function bgCode(m){
   const c = m?.competition?.code, i = m?.competition?.id;
   if(!c) return null;
@@ -682,8 +737,10 @@ selMatch.addEventListener('change',()=>{
   const id=selMatch.value,m=matches.find(x=>x.id==id);if(!m)return;
   extraInfo.style.display = 'none';
 
-  home.textContent=teamName(m.homeTeam);
-  away.textContent=teamName(m.awayTeam);
+  // use formatted names here
+  home.textContent=formatTeamName(teamName(m.homeTeam));
+  away.textContent=formatTeamName(teamName(m.awayTeam));
+
   hLogo.src=m.homeTeam?.mediumLogoUrl||'';
   aLogo.src=m.awayTeam?.mediumLogoUrl||'';
 
@@ -748,8 +805,9 @@ manualApply.addEventListener('click',()=>{
   const a=manualAway.value.trim();
   if(!h||!a){alert("Enter both team names");return;}
 
-  home.textContent=h;
-  away.textContent=a;
+  // use same formatter for manual names
+  home.textContent=formatTeamName(h);
+  away.textContent=formatTeamName(a);
   hLogo.src="";
   aLogo.src="";
 

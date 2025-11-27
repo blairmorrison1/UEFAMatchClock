@@ -512,15 +512,28 @@ function formatTeamName(raw){
 }
 
 function bgCode(m){
-  const c = m?.competition?.code, i = m?.competition?.id;
-  if(!c) return null;
-  if(['FWC','EQ','WC'].includes(c) || i==17) return 'EQ';
-  return c; // UCL, UEL, UCONF, UNL, USC, UWCL etc.
+  const c = m?.competition?.code;
+  const id = String(m?.competition?.id); // force string
+  const parentId = String(m?.competition?.parentCompetitionId);
+
+  // Qualifiers
+  if(['FWC','EQ','WC'].includes(c) || id === '17' || parentId === '17') {
+    return 'EQ';
+  }
+
+  // UWNL – World Cup Women's Nations League
+  if (id === '39' || parentId === '39') {
+    return 'UWNL';
+  }
+
+  return c;
 }
+
+
 
 function setBG(m){
   const code  = bgCode(m);
-  const known = ['EQ','UCL','UCONF','UEL','UNL','USC','UWCL'];
+  const known = ['EQ','UCL','UCONF','UEL','UNL','USC','UWCL','UWNL'];
 
   if(code && known.includes(code)){
     document.body.style.backgroundImage = `url('Background/${code}.png')`;
@@ -529,6 +542,7 @@ function setBG(m){
     document.body.style.backgroundColor = '#0a0a0c';
   }
 }
+
 
 // ----- LOAD MATCHES -----
 async function load(){

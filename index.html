@@ -293,17 +293,35 @@
     position:absolute;
     right:3vw;
     bottom:3vh;
-    min-width:260px;
-    max-width:340px;
-    padding:14px 18px;
-    border-radius:16px;
-    backdrop-filter:blur(10px);
-    background:rgba(0,0,0,0.5);
-    border:1px solid rgba(255,255,255,0.18);
-    box-shadow:0 0 18px rgba(0,0,0,0.6);
-    font-size:0.95rem;
+    min-width:400px;   /* ~25% bigger */
+    max-width:550px;
+    padding:18px 22px;
+    border-radius:20px;
+    backdrop-filter:blur(12px);
+    background:rgba(0,0,0,0.55);
+    border:1px solid rgba(255,255,255,0.20);
+    box-shadow:0 0 22px rgba(0,0,0,0.6);
+    font-size:1.3rem;
     display:none;
   }
+
+  /* Floating VoIP display (bottom-left) */
+  .voip-display{
+    position:absolute;
+    left:3vw;
+    bottom:3vh;
+    min-width:325px;
+    max-width:425px;
+    padding:18px 22px;
+    border-radius:20px;
+    backdrop-filter:blur(12px);
+    background:rgba(0,0,0,0.55);
+    border:1px solid rgba(255,255,255,0.20);
+    box-shadow:0 0 22px rgba(0,0,0,0.6);
+    font-size:1.3rem;
+    display:none;
+  }
+
   .extra-title{
     font-weight:600;
     font-size:1rem;
@@ -371,6 +389,27 @@
 
     <button id="addExtra" type="button" class="manual-btn">Add timing</button>
   </div>
+
+  <!-- VOIP SECTION -->
+  <label class="extra-toggle">
+    <input type="checkbox" id="useVoip">
+    <span>Show VoIP Numbers</span>
+  </label>
+
+  <div class="extra-config" id="voipConfig">
+    <select id="voipType" class="manual-input">
+      <option value="">Choose VoIP Line</option>
+      <option value="RRA">RRA</option>
+      <option value="Emergency Comms">Emergency Comms</option>
+      <option value="VTG">VTG</option>
+      <option value="Nyon">Nyon</option>
+      <option value="VAR">VAR</option>
+    </select>
+
+    <input id="voipNumber" class="manual-input" placeholder="Enter number">
+
+    <button id="addVoip" type="button" class="manual-btn">Add VoIP</button>
+  </div>
 </div>
 
 <!-- Manual mode toggle -->
@@ -427,6 +466,12 @@
   <div id="extraRows"></div>
 </div>
 
+<!-- Floating VoIP panel -->
+<div class="voip-display" id="voipDisplay">
+  <div class="extra-title">VoIP Numbers</div>
+  <div id="voipRows"></div>
+</div>
+
 <script>
 const selDate      = document.getElementById('matchDate'),
       selMatch     = document.getElementById('matchSelect'),
@@ -459,8 +504,17 @@ const addExtraBtn    = document.getElementById('addExtra');
 const extraDisplay   = document.getElementById('extraDisplay');
 const extraRows      = document.getElementById('extraRows');
 
+const useVoip       = document.getElementById('useVoip');
+const voipConfig    = document.getElementById('voipConfig');
+const voipType      = document.getElementById('voipType');
+const voipNumber    = document.getElementById('voipNumber');
+const addVoipBtn    = document.getElementById('addVoip');
+const voipDisplay   = document.getElementById('voipDisplay');
+const voipRows      = document.getElementById('voipRows');
+
 let matches = [], timer, extraTimer = null;
 let extraEvents = [];
+let voipEntries = [];
 
 // ----- TEAM / BACKGROUND HELPERS -----
 function teamName(t){
@@ -529,8 +583,6 @@ function bgCode(m){
   return c;
 }
 
-
-
 function setBG(m){
   const code  = bgCode(m);
   const known = ['EQ','UCL','UCONF','UEL','UNL','USC','UWCL','UWNL'];
@@ -542,7 +594,6 @@ function setBG(m){
     document.body.style.backgroundColor = '#0a0a0c';
   }
 }
-
 
 // ----- LOAD MATCHES -----
 async function load(){
@@ -673,7 +724,10 @@ function updateExtraDisplay(){
 
   const now = new Date();
 
-  const decorated = extraEvents.map(evt=>{
+  const stillActive = [];
+  const decorated = [];
+
+  extraEvents.forEach(evt => {
     const startDiff = evt.time - now;
     const endTime = new Date(evt.time.getTime() + evt.durationMs);
     let state, displayText, cssClass, sortBucket, sortTime;
@@ -709,16 +763,21 @@ function updateExtraDisplay(){
         sortBucket = 0;
         sortTime = evt.time.getTime();
       } else {
-        state = 'COMPLETE';
-        cssClass = 'extra-complete';
-        displayText = 'Complete';
-        sortBucket = 2;
-        sortTime = evt.time.getTime();
+        // Completed: drop it from the list
+        return;
       }
     }
 
-    return {evt, state, displayText, cssClass, sortBucket, sortTime};
+    stillActive.push(evt);
+    decorated.push({evt, state, displayText, cssClass, sortBucket, sortTime});
   });
+
+  extraEvents = stillActive;
+
+  if(decorated.length === 0){
+    extraDisplay.style.display = 'none';
+    return;
+  }
 
   decorated.sort((a,b)=>{
     if(a.sortBucket !== b.sortBucket) return a.sortBucket - b.sortBucket;
@@ -744,6 +803,64 @@ function updateExtraDisplay(){
   });
 
   extraDisplay.style.display = 'block';
+}
+
+// ----- VOIP LOGIC -----
+useVoip.addEventListener('change', () => {
+  const enabled = useVoip.checked;
+  voipConfig.style.display = enabled ? 'flex' : 'none';
+  if (!enabled) {
+    voipEntries = [];
+  }
+  updateVoipDisplay();
+});
+
+addVoipBtn.addEventListener('click', () => {
+  if (!useVoip.checked) return;
+  if (!voipType.value) return;
+
+  const number = voipNumber.value.trim();
+  if (!number) return;
+
+  const name = voipType.value;
+
+  // overwrite existing entry for same name
+  const existingIndex = voipEntries.findIndex(v => v.name === name);
+  if (existingIndex !== -1) {
+    voipEntries[existingIndex].number = number;
+  } else {
+    voipEntries.push({ name, number });
+  }
+
+  updateVoipDisplay();
+});
+
+function updateVoipDisplay(){
+  if (!useVoip.checked || voipEntries.length === 0){
+    voipDisplay.style.display = 'none';
+    return;
+  }
+
+  voipRows.innerHTML = '';
+
+  voipEntries.forEach(v => {
+    const row = document.createElement('div');
+    row.className = 'extra-row extra-upcoming';
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'extra-name';
+    nameSpan.textContent = v.name;
+
+    const numSpan = document.createElement('span');
+    numSpan.className = 'extra-time';
+    numSpan.textContent = v.number;
+
+    row.appendChild(nameSpan);
+    row.appendChild(numSpan);
+    voipRows.appendChild(row);
+  });
+
+  voipDisplay.style.display = 'block';
 }
 
 // ----- MATCH SELECTION -----
@@ -799,8 +916,9 @@ selMatch.addEventListener('change',()=>{
   header.classList.add('fade-in');
   infoSection.classList.add('fade-in');
 
-  // Ensure extra panel reflects current state
+  // Ensure extra + VoIP panels reflect current state
   updateExtraDisplay();
+  updateVoipDisplay();
 });
 
 // ---------- MANUAL MODE ----------
@@ -842,8 +960,9 @@ manualApply.addEventListener('click',()=>{
   void header.offsetWidth;
   header.classList.add('fade-in');
 
-  // Extra timings still valid in manual mode if configured
+  // Extra timings + VoIP still valid in manual mode if configured
   updateExtraDisplay();
+  updateVoipDisplay();
 });
 
 // ---------- LIVE CLOCK ----------
